@@ -117,6 +117,7 @@ async function chat(req, res) {
         }
 
         const context = await retrieveSimilarMessages(message);
+        console.log("context", context);
         const response = await generateResponse(message, context, config.impersonateUser);
         
         res.json({ response });

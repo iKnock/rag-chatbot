@@ -11,7 +11,7 @@ async function generateResponse(message, context, impersonateUser) {
         // First, check for common response patterns
         const patternResponse = responsePatternAnalyzer.findBestResponse(message, impersonateUser);
         
-        /*if (patternResponse) {
+        if (patternResponse) {
             // Analyze the pattern match
             const analysis = patternAnalyzer.analyzePattern(message, patternResponse, context);
 
@@ -33,12 +33,12 @@ async function generateResponse(message, context, impersonateUser) {
         if (memorizedResponse) {
             console.log('Using memorized successful response');
             return memorizedResponse;
-        }*/
+        }
 
-        if (patternResponse) {
+        /*if (patternResponse) {
             console.log('Using pattern-matched response');
             return patternResponse;
-        }
+        }*/
 
         // If no pattern match, use the sophisticated LLM approach
         const contextAnalysis = {

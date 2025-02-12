@@ -100,7 +100,6 @@ class ResponsePatternAnalyzer {
 
         // Try exact match first
         let responses = this.patterns.get(`exact:${normalizedMessage}`);
-        
         // Try intent match if no exact match
         if (!responses || responses.length === 0) {
             responses = this.patterns.get(`intent:${intent}`);
