@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Complete System Architecture Diagrams</title>
+    <title>RAG Chatbot System Architecture</title>
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <style>
         body {
@@ -22,173 +22,111 @@
     </style>
 </head>
 <body>
-    <h1>Complete System Architecture Diagrams</h1>
+    <h1>RAG Chatbot System Architecture</h1>
 
     <div class="diagram-container">
-        <h2>Full Architecture Diagram</h2>
+        <h2>Current System Architecture</h2>
         <div class="mermaid">
             graph TD
-                subgraph Frontend
-                    UI[Interactive Test Interface]
+                subgraph Testing_Interfaces
+                    IT[Interactive Test]
+                    AT[Advanced Pattern Test]
                 end
 
-                subgraph Backend_Server
+                subgraph Server_Interface
                     SV[Server.js]
-                    subgraph Core_Services
-                        OS[Ollama Service]
-                        CA[Conversation Analyzer]
-                        PP[PDF Processor]
-                        PS[PDF Service]
-                        VS[Vector Store Service]
+                    subgraph Controllers
+                        PC[PDF Controller]
                     end
+                end
 
-                    subgraph Data_Processing
-                        PQ[PDF Queue]
-                        PC[PDF Cache]
-                    end
+                subgraph Core_Services
+                    OS[Ollama Service]
+                    VS[Vector Store]
+                    CA[Conversation Analyzer]
+                end
 
-                    subgraph Storage
-                        CD[(Chroma DB)]
-                        FS[File System]
-                    end
-
-                    subgraph Configuration
-                        CF[Config]
-                    end
+                subgraph Utils
+                    PP[PDF Parser]
                 end
 
                 subgraph External_Services
-                    OL[Ollama LLM]
-                    CH[Chroma Server]
+                    OL[Ollama API]
+                    CH[Chroma DB]
                 end
 
-                %% Server Routes
-                UI -->|HTTP| SV
-                SV -->|Route Handler| OS
-                SV -->|PDF Upload| PP
-                SV -->|Vector Query| VS
+                %% Testing Interface Flow
+                IT -->|User Input| OS
+                AT -->|Test Input| OS
+                AT -->|Analysis| CA
+
+                %% Server Interface Flow
+                SV -->|PDF Routes| PC
+                PC -->|Parse| PP
+                PC -->|Store| VS
+                PC -->|Generate| OS
 
                 %% Service Dependencies
-                OS -->|Generate| OL
-                PP -->|Process| PS
-                PS -->|Store| CD
-                PS -->|Cache| PC
-                VS -->|Query| CD
-                VS -->|Retrieve| CH
+                OS -->|LLM Request| OL
+                VS -->|Vector Storage| CH
+                PP -->|Text Extraction| PC
 
-                %% File Operations
-                PP -->|Read/Write| FS
-                PS -->|Read| FS
-
-                %% Configuration
-                OS & CA & PP & PS & VS -->|Config| CF
-
-                %% PDF Processing Flow
-                PP -->|Queue| PQ
-                PQ -->|Process| PS
-
-                %% Analysis Flow
-                OS -->|Analyze| CA
-                CA -->|Results| OS
-
-                classDef server fill:#f96,stroke:#333,stroke-width:2px
-                classDef service fill:#f9f,stroke:#333,stroke-width:2px
-                classDef storage fill:#9cf,stroke:#333,stroke-width:2px
-                classDef queue fill:#ff9,stroke:#333,stroke-width:2px
-                classDef external fill:#bbf,stroke:#333,stroke-width:2px
-                classDef config fill:#bfb,stroke:#333,stroke-width:2px
                 classDef interface fill:#fbb,stroke:#333,stroke-width:2px
+                classDef service fill:#f9f,stroke:#333,stroke-width:2px
+                classDef controller fill:#f96,stroke:#333,stroke-width:2px
+                classDef external fill:#bbf,stroke:#333,stroke-width:2px
+                classDef util fill:#bfb,stroke:#333,stroke-width:2px
 
-                class SV server
-                class OS,CA,PP,PS,VS service
-                class CD,FS storage
-                class PQ,PC queue
+                class IT,AT interface
+                class OS,VS,CA service
+                class PC controller
                 class OL,CH external
-                class CF config
-                class UI interface
+                class PP util
         </div>
     </div>
 
     <div class="diagram-container">
-        <h2>PDF Processing Sequence</h2>
+        <h2>PDF Processing Flow</h2>
         <div class="mermaid">
             sequenceDiagram
-                participant UI as Client
-                participant SV as Server
-                participant PP as PDF Processor
-                participant PS as PDF Service
+                participant C as Client
+                participant S as Server.js
+                participant PC as PDF Controller
+                participant PP as PDF Parser
                 participant VS as Vector Store
-                participant CD as Chroma DB
-                participant FS as File System
+                participant CH as Chroma DB
 
-                UI->>SV: Upload PDF
-                SV->>PP: Process Request
-                PP->>FS: Save File
-                PP->>PS: Queue Processing
-                PS->>FS: Read File
-                PS->>PS: Extract Text
-                PS->>VS: Generate Vectors
-                VS->>CD: Store Vectors
-                CD-->>VS: Confirm Storage
-                VS-->>PS: Processing Complete
-                PS-->>PP: Update Status
-                PP-->>SV: Complete
-                SV-->>UI: Success Response
+                C->>S: Upload PDF
+                S->>PC: Process Request
+                PC->>PP: Parse PDF
+                PP-->>PC: Return Text
+                PC->>VS: Store Vectors
+                VS->>CH: Save to DB
+                CH-->>VS: Confirm Storage
+                VS-->>PC: Storage Complete
+                PC-->>S: Process Complete
+                S-->>C: Success Response
         </div>
     </div>
 
     <div class="diagram-container">
-        <h2>Component Relationships</h2>
+        <h2>Interactive Test Flow</h2>
         <div class="mermaid">
-            graph LR
-                subgraph Frontend
-                    UI[Interactive Test]
-                end
+            sequenceDiagram
+                participant U as User
+                participant IT as Interactive Test
+                participant OS as Ollama Service
+                participant CA as Conversation Analyzer
+                participant OL as Ollama API
 
-                subgraph Backend
-                    subgraph Server
-                        SV[Server.js]
-                    end
-
-                    subgraph Services
-                        OS[Ollama Service]
-                        CA[Conversation Analyzer]
-                        PP[PDF Processor]
-                        PS[PDF Service]
-                        VS[Vector Store]
-                    end
-
-                    subgraph Storage
-                        CD[(Chroma DB)]
-                        FS[File System]
-                    end
-
-                    subgraph Config
-                        CF[Configuration]
-                    end
-                end
-
-                subgraph External
-                    OL[Ollama LLM]
-                    CH[Chroma Server]
-                end
-
-                UI <--> SV
-                SV <--> OS
-                SV <--> PP
-                PP <--> PS
-                PS <--> VS
-                VS <--> CD
-                PS <--> FS
-                OS <--> OL
-                CD <--> CH
-
-                style SV fill:#f96
-                style OS,CA,PP,PS,VS fill:#f9f
-                style CD,FS fill:#9cf
-                style UI fill:#fbb
-                style CF fill:#bfb
-                style OL,CH fill:#bbf
+                U->>IT: Input Query
+                IT->>OS: Generate Response
+                OS->>CA: Analyze Context
+                CA-->>OS: Analysis Results
+                OS->>OL: LLM Request
+                OL-->>OS: Generated Response
+                OS-->>IT: Final Response
+                IT-->>U: Display Response
         </div>
     </div>
 
@@ -203,4 +141,4 @@
         });
     </script>
 </body>
-</html> 
+</html>
