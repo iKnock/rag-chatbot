@@ -5,11 +5,19 @@ const responsePatternAnalyzer = require('./responsePatternAnalyzer');
 const patternAnalyzer = require('../tools/patternAnalyzer');
 const feedbackInterface = require('../tools/feedbackInterface');
 const responseMemory = require('../services/responseMemory');
+const vectorStore = require('./vectorStore');
+
+const { storeVectors, retrieveSimilarMessages } = require('../services/vectorStore');
 
 async function generateResponse(message, context, impersonateUser) {
     try {
         // First, check for common response patterns
         const patternResponse = responsePatternAnalyzer.findBestResponse(message, impersonateUser);
+
+        /*if (patternResponse) {
+            console.log('Using pattern-matched response');
+            return patternResponse;
+        }*/
         
         if (patternResponse) {
             // Analyze the pattern match
@@ -34,11 +42,22 @@ async function generateResponse(message, context, impersonateUser) {
             console.log('Using memorized successful response');
             return memorizedResponse;
         }
+        
+        // Get relevant context from ChromaDB
+        const relevantDocs = await vectorStore.retrieveSimilarMessages(message);
+        
+        console.log("relevantDocs", relevantDocs);
+        // Extract the text content from the search results
+        const vectorContext = relevantDocs.documents?.[0] || [];
+        
+        // Create an enhanced context combining vector search results and conversation context
+        const enhancedContext = `
+            Relevant Information from Documents:
+            ${vectorContext.join('\n')}
 
-        /*if (patternResponse) {
-            console.log('Using pattern-matched response');
-            return patternResponse;
-        }*/
+            Previous Conversation:
+            ${context.join('\n')}
+        `;
 
         // If no pattern match, use the sophisticated LLM approach
         const contextAnalysis = {

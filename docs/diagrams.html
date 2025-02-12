@@ -25,19 +25,17 @@
     <h1>RAG Chatbot System Architecture</h1>
 
     <div class="diagram-container">
-        <h2>Current System Architecture</h2>
+        <h2>System Architecture Overview</h2>
         <div class="mermaid">
             graph TD
-                subgraph Testing_Interfaces
-                    IT[Interactive Test]
-                    AT[Advanced Pattern Test]
+                subgraph Server_Endpoints
+                    SV[Server.js]
+                    PP[POST /process-pdf]
+                    CH[POST /chat]
                 end
 
-                subgraph Server_Interface
-                    SV[Server.js]
-                    subgraph Controllers
-                        PC[PDF Controller]
-                    end
+                subgraph Controllers
+                    PC[PDF Controller]
                 end
 
                 subgraph Core_Services
@@ -47,46 +45,47 @@
                 end
 
                 subgraph Utils
-                    PP[PDF Parser]
+                    PDP[PDF Parser]
                 end
 
                 subgraph External_Services
                     OL[Ollama API]
-                    CH[Chroma DB]
+                    CDB[Chroma DB]
                 end
 
-                %% Testing Interface Flow
-                IT -->|User Input| OS
-                AT -->|Test Input| OS
-                AT -->|Analysis| CA
+                %% Process PDF Flow
+                SV -->|PDF Route| PP
+                PP -->|Process| PC
+                PC -->|Parse| PDP
+                PDP -->|Return Text| PC
+                PC -->|Create Vectors| VS
+                VS -->|Store Vectors| CDB
 
-                %% Server Interface Flow
-                SV -->|PDF Routes| PC
-                PC -->|Parse| PP
-                PC -->|Store| VS
-                PC -->|Generate| OS
+                %% Chat Flow
+                SV -->|Chat Route| CH
+                CH -->|Query| PC
+                PC -->|Search| VS
+                VS -->|Retrieve Vectors| CDB
+                CDB -->|Return Matches| VS
+                VS -->|Context| OS
+                OS -->|Enhanced Query| OL
 
-                %% Service Dependencies
-                OS -->|LLM Request| OL
-                VS -->|Vector Storage| CH
-                PP -->|Text Extraction| PC
-
-                classDef interface fill:#fbb,stroke:#333,stroke-width:2px
+                classDef endpoint fill:#fbb,stroke:#333,stroke-width:2px
                 classDef service fill:#f9f,stroke:#333,stroke-width:2px
                 classDef controller fill:#f96,stroke:#333,stroke-width:2px
                 classDef external fill:#bbf,stroke:#333,stroke-width:2px
                 classDef util fill:#bfb,stroke:#333,stroke-width:2px
 
-                class IT,AT interface
+                class PP,CH endpoint
                 class OS,VS,CA service
                 class PC controller
-                class OL,CH external
-                class PP util
+                class OL,CDB external
+                class PDP util
         </div>
     </div>
 
     <div class="diagram-container">
-        <h2>PDF Processing Flow</h2>
+        <h2>PDF Processing and Storage Flow</h2>
         <div class="mermaid">
             sequenceDiagram
                 participant C as Client
@@ -94,15 +93,17 @@
                 participant PC as PDF Controller
                 participant PP as PDF Parser
                 participant VS as Vector Store
-                participant CH as Chroma DB
+                participant CDB as Chroma DB
 
-                C->>S: Upload PDF
-                S->>PC: Process Request
+                C->>S: POST /process-pdf
+                S->>PC: Forward PDF
                 PC->>PP: Parse PDF
-                PP-->>PC: Return Text
-                PC->>VS: Store Vectors
-                VS->>CH: Save to DB
-                CH-->>VS: Confirm Storage
+                PP-->>PC: Return Parsed Text
+                Note over PC,PP: Text includes:<br/>1. Extracted content<br/>2. Metadata<br/>3. Structure info
+                PC->>VS: Create Vectors from Text
+                Note over PC,VS: Vector creation:<br/>1. Text chunking<br/>2. Vector embedding<br/>3. Metadata attachment
+                VS->>CDB: Store Vectors & Metadata
+                CDB-->>VS: Confirm Storage
                 VS-->>PC: Storage Complete
                 PC-->>S: Process Complete
                 S-->>C: Success Response
@@ -110,23 +111,32 @@
     </div>
 
     <div class="diagram-container">
-        <h2>Interactive Test Flow</h2>
+        <h2>Chat Flow with Vector Store Integration</h2>
         <div class="mermaid">
             sequenceDiagram
-                participant U as User
-                participant IT as Interactive Test
+                participant C as Client
+                participant S as Server.js
+                participant PC as PDF Controller
+                participant VS as Vector Store
+                participant CDB as Chroma DB
                 participant OS as Ollama Service
-                participant CA as Conversation Analyzer
                 participant OL as Ollama API
 
-                U->>IT: Input Query
-                IT->>OS: Generate Response
-                OS->>CA: Analyze Context
-                CA-->>OS: Analysis Results
-                OS->>OL: LLM Request
+                C->>S: POST /chat (query)
+                S->>PC: Forward Query
+                PC->>VS: Search Similar Content
+                VS->>CDB: Query Vectors
+                Note over VS,CDB: Search params:<br/>1. Query embedding<br/>2. Similarity threshold<br/>3. Top k results
+                CDB-->>VS: Return Relevant Vectors
+                VS-->>PC: Return Matched Content
+                Note over VS,PC: Content includes:<br/>1. Similar passages<br/>2. Relevance scores<br/>3. Source metadata
+                PC->>OS: Generate Response
+                Note over PC,OS: Context building:<br/>1. Query<br/>2. Retrieved content<br/>3. Chat history
+                OS->>OL: Enhanced LLM Request
                 OL-->>OS: Generated Response
-                OS-->>IT: Final Response
-                IT-->>U: Display Response
+                OS-->>PC: Formatted Response
+                PC-->>S: Final Response
+                S-->>C: Send to Client
         </div>
     </div>
 
