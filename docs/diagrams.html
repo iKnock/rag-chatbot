@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Complete System Architecture Diagrams</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .diagram-container {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Complete System Architecture Diagrams</h1>
+
+    <div class="diagram-container">
+        <h2>Full Architecture Diagram</h2>
+        <div class="mermaid">
+            graph TD
+                subgraph Frontend
+                    UI[Interactive Test Interface]
+                end
+
+                subgraph Backend_Server
+                    SV[Server.js]
+                    subgraph Core_Services
+                        OS[Ollama Service]
+                        CA[Conversation Analyzer]
+                        PP[PDF Processor]
+                        PS[PDF Service]
+                        VS[Vector Store Service]
+                    end
+
+                    subgraph Data_Processing
+                        PQ[PDF Queue]
+                        PC[PDF Cache]
+                    end
+
+                    subgraph Storage
+                        CD[(Chroma DB)]
+                        FS[File System]
+                    end
+
+                    subgraph Configuration
+                        CF[Config]
+                    end
+                end
+
+                subgraph External_Services
+                    OL[Ollama LLM]
+                    CH[Chroma Server]
+                end
+
+                %% Server Routes
+                UI -->|HTTP| SV
+                SV -->|Route Handler| OS
+                SV -->|PDF Upload| PP
+                SV -->|Vector Query| VS
+
+                %% Service Dependencies
+                OS -->|Generate| OL
+                PP -->|Process| PS
+                PS -->|Store| CD
+                PS -->|Cache| PC
+                VS -->|Query| CD
+                VS -->|Retrieve| CH
+
+                %% File Operations
+                PP -->|Read/Write| FS
+                PS -->|Read| FS
+
+                %% Configuration
+                OS & CA & PP & PS & VS -->|Config| CF
+
+                %% PDF Processing Flow
+                PP -->|Queue| PQ
+                PQ -->|Process| PS
+
+                %% Analysis Flow
+                OS -->|Analyze| CA
+                CA -->|Results| OS
+
+                classDef server fill:#f96,stroke:#333,stroke-width:2px
+                classDef service fill:#f9f,stroke:#333,stroke-width:2px
+                classDef storage fill:#9cf,stroke:#333,stroke-width:2px
+                classDef queue fill:#ff9,stroke:#333,stroke-width:2px
+                classDef external fill:#bbf,stroke:#333,stroke-width:2px
+                classDef config fill:#bfb,stroke:#333,stroke-width:2px
+                classDef interface fill:#fbb,stroke:#333,stroke-width:2px
+
+                class SV server
+                class OS,CA,PP,PS,VS service
+                class CD,FS storage
+                class PQ,PC queue
+                class OL,CH external
+                class CF config
+                class UI interface
+        </div>
+    </div>
+
+    <div class="diagram-container">
+        <h2>PDF Processing Sequence</h2>
+        <div class="mermaid">
+            sequenceDiagram
+                participant UI as Client
+                participant SV as Server
+                participant PP as PDF Processor
+                participant PS as PDF Service
+                participant VS as Vector Store
+                participant CD as Chroma DB
+                participant FS as File System
+
+                UI->>SV: Upload PDF
+                SV->>PP: Process Request
+                PP->>FS: Save File
+                PP->>PS: Queue Processing
+                PS->>FS: Read File
+                PS->>PS: Extract Text
+                PS->>VS: Generate Vectors
+                VS->>CD: Store Vectors
+                CD-->>VS: Confirm Storage
+                VS-->>PS: Processing Complete
+                PS-->>PP: Update Status
+                PP-->>SV: Complete
+                SV-->>UI: Success Response
+        </div>
+    </div>
+
+    <div class="diagram-container">
+        <h2>Component Relationships</h2>
+        <div class="mermaid">
+            graph LR
+                subgraph Frontend
+                    UI[Interactive Test]
+                end
+
+                subgraph Backend
+                    subgraph Server
+                        SV[Server.js]
+                    end
+
+                    subgraph Services
+                        OS[Ollama Service]
+                        CA[Conversation Analyzer]
+                        PP[PDF Processor]
+                        PS[PDF Service]
+                        VS[Vector Store]
+                    end
+
+                    subgraph Storage
+                        CD[(Chroma DB)]
+                        FS[File System]
+                    end
+
+                    subgraph Config
+                        CF[Configuration]
+                    end
+                end
+
+                subgraph External
+                    OL[Ollama LLM]
+                    CH[Chroma Server]
+                end
+
+                UI <--> SV
+                SV <--> OS
+                SV <--> PP
+                PP <--> PS
+                PS <--> VS
+                VS <--> CD
+                PS <--> FS
+                OS <--> OL
+                CD <--> CH
+
+                style SV fill:#f96
+                style OS,CA,PP,PS,VS fill:#f9f
+                style CD,FS fill:#9cf
+                style UI fill:#fbb
+                style CF fill:#bfb
+                style OL,CH fill:#bbf
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose',
+            themeVariables: {
+                fontSize: '16px'
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,93 @@
+# Dependencies
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+build/
+out/
+
+# Cache directories
+.cache/
+.npm/
+.yarn/
+/cache/
+**/chromadb-default-embed/
+**/.cache/
+
+# ChromaDB directories
+/chroma_data/
+/chroma_db/
+/.chroma/
+/chroma.sqlite3
+/index_data/
+**/chroma*/
+
+# Data files
+/data/
+/data/*.pdf
+/data/chat.pdf
+**/data/*.pdf
+**/data/chat.pdf
+
+# Logs
+/logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+*.bak
+*.sublime-workspace
+*.sublime-project
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Testing
+/coverage/
+.nyc_output/
+
+# Temporary files
+/tmp/
+/temp/
+*.tmp
+
+# ChromaDB specific
+/.chroma/
+/chroma.sqlite3
+**/chroma_data/
+**/chroma_db/
+**/chromadb/
+**/*.sqlite3
+
+# Python cache (if using any Python scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+
+# Project specific
+/backend/data/
+/backend/cache/
+/backend/logs/
+/backend/tmp/
